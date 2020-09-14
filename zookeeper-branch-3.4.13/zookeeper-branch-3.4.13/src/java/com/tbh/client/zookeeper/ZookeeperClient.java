@@ -17,6 +17,7 @@ public class ZookeeperClient {
         // 还有sendThread = new SendThread(clientCnxnSocket);
         //        eventThread = new EventThread();
         //然后ClientCnxn。startq其实就是启动上述两个SendThread,eventThread
+        // ZooKeeper("localhost:2181 ,....集群
         ZooKeeper client = new ZooKeeper("localhost:2181", 10000, new Watcher() {
             @Override
             public void process(WatchedEvent event) {

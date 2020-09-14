@@ -278,7 +278,9 @@ public class ZooKeeperMain {
             zk.close();
         }
         host = newHost;
+        //只读模式
         boolean readOnly = cl.getOption("readonly") != null;
+        //原生zookeeper客户端
         zk = new ZooKeeper(host,
                  Integer.parseInt(cl.getOption("timeout")),
                  new MyWatcher(), readOnly);
@@ -286,7 +288,7 @@ public class ZooKeeperMain {
     
     public static void main(String args[])
         throws KeeperException, IOException, InterruptedException
-    {
+    {   //cmd命令下交互入口
         ZooKeeperMain main = new ZooKeeperMain(args);
         main.run();
     }
@@ -311,7 +313,7 @@ public class ZooKeeperMain {
 
             boolean jlinemissing = false;
             // only use jline if it's in the classpath
-            try {
+            try {//jline.ConsoleReader java命令行工具类
                 Class<?> consoleC = Class.forName("jline.ConsoleReader");
                 Class<?> completorC =
                     Class.forName("org.apache.zookeeper.JLineZNodeCompletor");
@@ -330,7 +332,7 @@ public class ZooKeeperMain {
                 String line;
                 Method readLine = consoleC.getMethod("readLine", String.class);
                 while ((line = (String)readLine.invoke(console, getPrompt())) != null) {
-                    executeLine(line);
+                    executeLine(line);//处理命令行
                 }
             } catch (ClassNotFoundException e) {
                 LOG.debug("Unable to start jline", e);

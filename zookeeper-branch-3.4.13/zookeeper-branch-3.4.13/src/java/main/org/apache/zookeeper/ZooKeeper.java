@@ -443,11 +443,14 @@ public class ZooKeeper {
     {
         LOG.info("Initiating client connection, connectString=" + connectString
                 + " sessionTimeout=" + sessionTimeout + " watcher=" + watcher);
-
+        //默认watcher
         watchManager.defaultWatcher = watcher;
-
+        //connectString localhost:2181,.... 会解析
+        //随机的连接一台，如果挂掉会试着再选择一台
         ConnectStringParser connectStringParser = new ConnectStringParser(
                 connectString);
+        //ArrayList<InetSocketAddress> serverAddresses 打乱了顺序
+        // serverAddress = hostProvider.next(1000);取出后再打乱
         HostProvider hostProvider = new StaticHostProvider(
                 connectStringParser.getServerAddresses());
         cnxn = new ClientCnxn(connectStringParser.getChrootPath(),
@@ -1841,7 +1844,7 @@ public class ZooKeeper {
     }
 
     private static ClientCnxnSocket getClientCnxnSocket() throws IOException {
-        //
+        //socketnio实例
         String clientCnxnSocketName = System
                 .getProperty(ZOOKEEPER_CLIENT_CNXN_SOCKET);
         if (clientCnxnSocketName == null) {

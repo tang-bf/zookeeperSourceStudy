@@ -507,7 +507,7 @@ public class ClientCnxn {
                  Object event = waitingEvents.take();
                  if (event == eventOfDeath) {
                     wasKilled = true;
-                 } else {
+                 } else  {
                      // 核心方法
                     processEvent(event);
                  }
@@ -1060,7 +1060,7 @@ public class ClientCnxn {
             InetSocketAddress serverAddress = null;
             while (state.isAlive()) {
                 try {
-                    if (!clientCnxnSocket.isConnected()) {
+                    if (!clientCnxnSocket.isConnected()) {//还没连接  尝试去连接
                         // 不是第一次连接，就随机等待...，重试，随机出时间进行重试
                         if(!isFirstConnect){
                             try {
