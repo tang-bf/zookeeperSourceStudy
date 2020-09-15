@@ -777,10 +777,12 @@ public class ZooKeeper {
         throws KeeperException, InterruptedException
     {
         final String clientPath = path;
+        //是顺序节点的时候，在验证的时候会在节点后加固定1 ，只是判断的时候加
         PathUtils.validatePath(clientPath, createMode.isSequential());
 
         final String serverPath = prependChroot(clientPath);
-
+        //requestheader  Record serialize deserialize 利用jute的序列反序列化
+        // xid;type
         RequestHeader h = new RequestHeader();
         h.setType(ZooDefs.OpCode.create);
         CreateRequest request = new CreateRequest();

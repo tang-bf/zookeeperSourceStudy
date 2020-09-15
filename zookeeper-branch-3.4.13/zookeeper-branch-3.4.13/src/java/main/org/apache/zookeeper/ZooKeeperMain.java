@@ -331,6 +331,12 @@ public class ZooKeeperMain {
 
                 String line;
                 Method readLine = consoleC.getMethod("readLine", String.class);
+                /**
+                 *  protected String getPrompt() {
+                 *         return "[zk: " + host + "("+zk.getState()+")" + " " + commandCount + "] ";
+                 *     }commandCount 命令行次数
+                 *     命令行展示的 zk:localhost:2181(CONNECTED)3
+                 */
                 while ((line = (String)readLine.invoke(console, getPrompt())) != null) {
                     executeLine(line);//处理命令行
                 }
@@ -371,6 +377,7 @@ public class ZooKeeperMain {
     throws InterruptedException, IOException, KeeperException {
       if (!line.equals("")) {
         cl.parseCommand(line);
+        //添加到历史
         addToHistory(commandCount,line);
         processCmd(cl);
         commandCount++;
@@ -629,6 +636,19 @@ public class ZooKeeperMain {
     protected boolean processZKCmd(MyCommandOptions co)
         throws KeeperException, IOException, InterruptedException
     {
+        /**stat 对象
+         * private long czxid; 创建节点时的id
+         *   private long mzxid;
+         *   private long ctime;
+         *   private long mtime;
+         *   private int version;
+         *   private int cversion;
+         *   private int aversion;
+         *   private long ephemeralOwner;
+         *   private int dataLength;
+         *   private int numChildren;
+         *   private long pzxid;
+         */
         Stat stat = new Stat();
         String[] args = co.getArgArray();
         String cmd = co.getCommand();
@@ -708,6 +728,7 @@ public class ZooKeeperMain {
                 acl = parseACLs(args[first+3]);
             }
             path = args[first + 1];
+            //最终调用zk客户端的create方法
             String newPath = zk.create(path, args[first+2].getBytes(), acl,
                     flags);
             System.err.println("Created " + newPath);

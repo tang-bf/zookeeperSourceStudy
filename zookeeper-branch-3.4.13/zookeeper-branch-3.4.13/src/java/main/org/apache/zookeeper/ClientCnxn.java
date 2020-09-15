@@ -1433,11 +1433,12 @@ public class ClientCnxn {
         return xid++;
     }
 
-    // 同步获取结果
+    // 同步获取结果 通过socket把数据传输到服务端
     public ReplyHeader submitRequest(RequestHeader h, Record request,
             Record response, WatchRegistration watchRegistration)
             throws InterruptedException {
         ReplyHeader r = new ReplyHeader();
+        //加到一个队列里面去 linkedlist
         Packet packet = queuePacket(h, r, request, response, null, null, null,
                     null, watchRegistration);
         synchronized (packet) {
@@ -1492,6 +1493,7 @@ public class ClientCnxn {
                 if (h.getType() == OpCode.closeSession) {
                     closing = true;
                 }
+                //LinkedList<Packet> outgoingQueue
                 outgoingQueue.add(packet);
             }
         }
