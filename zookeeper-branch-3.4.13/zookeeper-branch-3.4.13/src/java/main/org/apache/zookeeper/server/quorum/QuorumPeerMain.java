@@ -60,6 +60,15 @@ import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
  * </ol>
  * In addition to the config file. There is a file in the data directory called
  * "myid" that contains the server id as an ASCII decimal value.
+ *服务端启动类
+ * 接受请求
+ * 1.创建事物日志
+ * 2.快照  database 文件
+ * 3.更新内存  操作datatree
+ * 4.f返回信息
+ * database  datatree datanode
+ * 启动时候的流程
+ * 文件里面取数据加载到内存
  *
  */
 @InterfaceAudience.Public
@@ -105,7 +114,8 @@ public class QuorumPeerMain {
      */
     protected void initializeAndRun(String[] args)
         throws ConfigException, IOException
-    {
+    {   //解析配置类  zoo.cfg 先将server.那些加到servers 通过他的size/2 过半机制，验证了observer是不参与投票选举的； quorumVerifier = new QuorumMaj(servers.size());
+        // 最后会再加到servers中启动
         QuorumPeerConfig config = new QuorumPeerConfig();
         if (args.length == 1) {
             config.parse(args[0]);

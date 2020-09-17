@@ -50,6 +50,7 @@ import java.util.regex.Pattern;
  */
 @InterfaceAudience.Public
 public class ZooKeeperMain {
+
     private static final Logger LOG = LoggerFactory.getLogger(ZooKeeperMain.class);
     static final Map<String,String> commandMap = new HashMap<String,String>( );
 
@@ -314,6 +315,8 @@ public class ZooKeeperMain {
             boolean jlinemissing = false;
             // only use jline if it's in the classpath
             try {//jline.ConsoleReader java命令行工具类
+               // zk是通过jline实现控制台输入读取，自动补全等功能，
+                // 并且最终将一行数据通过executeLine(line)执行，该方法的核心代码也只有一行watch = processZKCmd(co);
                 Class<?> consoleC = Class.forName("jline.ConsoleReader");
                 Class<?> completorC =
                     Class.forName("org.apache.zookeeper.JLineZNodeCompletor");

@@ -36,6 +36,7 @@ import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
  */
 @InterfaceAudience.Public
 public class ZooKeeperServerMain {
+    // //单机server
     private static final Logger LOG =
         LoggerFactory.getLogger(ZooKeeperServerMain.class);
 
@@ -116,7 +117,7 @@ public class ZooKeeperServerMain {
             zkServer.setTickTime(config.tickTime);
             zkServer.setMinSessionTimeout(config.minSessionTimeout);
             zkServer.setMaxSessionTimeout(config.maxSessionTimeout);
-            // 获取建立socket工厂，工厂方法模式
+            // 获取建立socket工厂，工厂方法模式 nio netty
             cnxnFactory = ServerCnxnFactory.createFactory();
             // 建立socket,默认是NIOServerCnxnFactory（是一个线程）
             cnxnFactory.configure(config.getClientPortAddress(),
