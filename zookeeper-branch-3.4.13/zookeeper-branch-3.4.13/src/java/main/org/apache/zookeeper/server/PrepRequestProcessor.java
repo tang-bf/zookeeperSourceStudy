@@ -283,6 +283,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
             return;
         }
         for (Id authId : ids) {
+            //超级管理员
             if (authId.getScheme().equals("super")) {
                 return;
             }
@@ -721,6 +722,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
      *
      * authInfo 当前登录的用户
      * acl 针对设置的权限
+     *            fixupacl 会把所有用户的权限都设置一样  不知道为啥这样设计  acl尽量不用
      * @return
      */
     private boolean fixupACL(List<Id> authInfo, List<ACL> acl) {
