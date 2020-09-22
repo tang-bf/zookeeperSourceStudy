@@ -69,6 +69,7 @@ import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
  * database  datatree datanode
  * 启动时候的流程
  * 文件里面取数据加载到内存
+ * zookeeper 集群脑裂   分布式锁敬群 （nginex epoll 线程池） C10K C10m问题
  *
  */
 @InterfaceAudience.Public
