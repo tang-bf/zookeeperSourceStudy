@@ -73,8 +73,8 @@ public class QuorumPeerConfig {
     protected HashMap<Long, Long> serverGroup = new HashMap<Long, Long>();
     protected int numGroups = 0;
     protected QuorumVerifier quorumVerifier;
-    protected int snapRetainCount = 3;
-    protected int purgeInterval = 0;
+    protected int snapRetainCount = 3;//保留文件的个数
+    protected int purgeInterval = 0;//上一个参数配合使用，设置自动清理的频率，单位为小时
     protected boolean syncEnabled = true;
 
     protected LearnerType peerType = LearnerType.PARTICIPANT;

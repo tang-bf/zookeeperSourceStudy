@@ -46,7 +46,8 @@ import java.util.regex.Pattern;
 
 /**
  * The command line client to ZooKeeper.
- *
+ *vm options  添加配置
+ * -Dlog4j.configuration=file:D:\zookeeper-3.4master\zookeeper-branch-3.4.13\zookeeper-branch-3.4.13\conf\log4j.properties
  */
 @InterfaceAudience.Public
 public class ZooKeeperMain {
