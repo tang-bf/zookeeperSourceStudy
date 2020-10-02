@@ -280,7 +280,7 @@ public class ZooKeeperMain {
             zk.close();
         }
         host = newHost;
-        //只读模式
+        //只读模式   客户端服务端都可以设置只读模式  zkCli.sh -timeout 0 -r -server ip:port  -r 只读模式  一个服务器与集群中过半机器失去连接以后，这个服务器就不在不处理客户端的请求  服务器可以提供读服务
         boolean readOnly = cl.getOption("readonly") != null;
         //原生zookeeper客户端
         zk = new ZooKeeper(host,
