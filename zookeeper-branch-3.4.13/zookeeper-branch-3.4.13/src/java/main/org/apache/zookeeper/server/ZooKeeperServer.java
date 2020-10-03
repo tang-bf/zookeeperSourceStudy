@@ -416,7 +416,14 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         // 这里比较重要，这里设置请求处理器，包括请求前置处理器，和请求后置处理器
         // 注意，集群模式下，learner服务端都对调用这个方法，但是比如FollowerZookeeperServer和ObserverZooKeeperServer都会重写这个方法
         setupRequestProcessors();// 单机服务器下 PrepRequestProcessor  SyncRequestProcessor   FinalRequestProcessor
-
+        //PrepRequestProcessor  线程加队列的方式处理request 保证了顺序执行 设置request的hdr和txn
+        // 根据不同命令操作类型  生成changerecord 表示对某一个节点的一次修改记录 一个操作可能对应不止一条record
+        //一个create操作可能也要创建当前节点还要修改父节点的信息，把changerecord放到outstandingchangges 队列中
+        // 我们执行一个create操作的时候需要获取改父节点的信息 ，如果outstandingchangges没有父节点信息，需要从database
+        //中获取，影响效率；验证acl;把request交给nextprocessor处理.
+        //SyncRequestProcessor 线程加队列的方式处理request 保证了顺序执行 把request的hdr和txn 持久化
+        //单独开启一个线程打快照   把request交给nextprocessor处理
+        //FinalRequestProcessor  根据request更新这款database  触发watxh 发送response给客户端
         registerJMX();
 
         setState(State.RUNNING);

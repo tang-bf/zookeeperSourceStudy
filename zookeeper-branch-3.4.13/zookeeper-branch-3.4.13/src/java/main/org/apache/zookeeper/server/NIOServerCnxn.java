@@ -245,7 +245,7 @@ public class NIOServerCnxn extends ServerCnxn {
             }
             // k所对应的channel可读
             if (k.isReadable()) {
-                int rc = sock.read(incomingBuffer);
+                int rc = sock.read(incomingBuffer); // = lenBuffer = ByteBuffer.allocate(4);一开始读取4个字节，是数据包的长度
                 if (rc < 0) {
                     throw new EndOfStreamException(
                             "Unable to read additional data from client sessionid 0x"
@@ -987,7 +987,7 @@ public class NIOServerCnxn extends ServerCnxn {
      */
     private boolean readLength(SelectionKey k) throws IOException {
         // Read the length, now get the buffer
-        int len = lenBuffer.getInt();
+        int len = lenBuffer.getInt(); //此时的len代表数据包的长度  比如是100
         if (!initialized && checkFourLetterWord(sk, len)) {
             return false;
         }

@@ -20,6 +20,7 @@ package org.apache.zookeeper.server;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import javax.management.JMException;
@@ -109,20 +110,70 @@ public class ZooKeeperServerMain {
             final CountDownLatch shutdownLatch = new CountDownLatch(1);
             zkServer.registerServerShutdownHandler(
                     new ZooKeeperServerShutdownHandler(shutdownLatch));
-
+            //日志目录  数据目录  工具类
             txnLog = new FileTxnSnapLog(new File(config.dataLogDir), new File(
                     config.dataDir));
+            //3.6版本上加了 jvmpausemonitor（hadoop2.7）监控jvm暂停时间   GarbageCollectorMXBean（jdk原生获得gc的信息）
+            // 3.5adminserver factory.createadminserver 用的是jetty
+            /**
+             *  adminServer = AdminServerFactory.createAdminServer();
+             *             adminServer.setZooKeeperServer(zkServer);
+             *             adminServer.start();
+             *             Class.forName("org.apache.zookeeper.server.admin.JettyAdminServer");
+             */
             txnLog.setServerStats(zkServer.serverStats());
             zkServer.setTxnLogFactory(txnLog);
             zkServer.setTickTime(config.tickTime);
             zkServer.setMinSessionTimeout(config.minSessionTimeout);
             zkServer.setMaxSessionTimeout(config.maxSessionTimeout);
-            // 获取建立socket工厂，工厂方法模式 nio netty
+            // 获取建立socket工厂，工厂方法模式 m默认 nio  可配置为netty
             cnxnFactory = ServerCnxnFactory.createFactory();
             // 建立socket,默认是NIOServerCnxnFactory（是一个线程）
+            //配置并绑定端口
             cnxnFactory.configure(config.getClientPortAddress(),
                     config.getMaxClientCnxns());
+            //加载数据  初始化处理请求链
             cnxnFactory.startup(zkServer);
+            /**3.5后
+             * containerManager = new ContainerManager(zkServer.getZKDatabase(), zkServer.firstProcessor,
+             *                     Integer.getInteger("znode.container.checkIntervalMs", (int) TimeUnit.MINUTES.toMillis(1)),
+             *                     Integer.getInteger("znode.container.maxPerMinute", 10000)
+             *             );
+             *             containerManager.start();
+             *             开启timertask  删除容器节点  容器节点  ttl节点
+             * protected Collection<String> getCandidates() {
+             *         Set<String> candidates = new HashSet<String>();
+             *         for (String containerPath : zkDb.getDataTree().getContainers()) {
+             *             DataNode node = zkDb.getDataTree().getNode(containerPath);
+             *             /*
+             *                 cversion > 0: keep newly created containers from being deleted
+             *                 before any children have been added. If you were to create the
+             *                 container just before a container cleaning period the container
+             *                 would be immediately be deleted.
+             *              */
+//             *if ((node != null) && (node.stat.getCversion() > 0) &&
+//             *(node.getChildren().size() == 0)){
+//             *candidates.add(containerPath);
+//             *}
+//             *}
+//             *for (String ttlPath : zkDb.getDataTree().getTtls()) {
+//             *DataNode node = zkDb.getDataTree().getNode(ttlPath);
+//             *if (node != null) {
+//             *Set<String> children = node.getChildren();
+//             *if ((children == null) || (children.size() == 0)) {
+//             *if (EphemeralType.get(node.stat.getEphemeralOwner()) == EphemeralType.TTL) {
+//             *long elapsed = getElapsed(node);
+//             *long ttl = EphemeralType.TTL.getValue(node.stat.getEphemeralOwner());
+//             *if ((ttl != 0) && (getElapsed(node) > ttl)) {
+//             *candidates.add(ttlPath);
+//             *}
+//             *}
+//             *}
+//             *}
+//             *}
+//             *return candidates;
+//             *}
+
             // Watch status of ZooKeeper server. It will do a graceful shutdown
             // if the server is not running or hits an internal error.
             shutdownLatch.await();
