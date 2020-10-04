@@ -67,9 +67,16 @@ import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
  * 3.更新内存  操作datatree
  * 4.f返回信息
  * database  datatree datanode
- * 启动时候的流程
+ * 启动时候的流程R
  * 文件里面取数据加载到内存
- * zookeeper 集群脑裂   分布式锁敬群 （nginex epoll 线程池） C10K C10m问题
+ * zookeeper 集群脑裂 （Quorums（ˈkwôrəm 法定R人数） ；
+ * Redundant communications：冗余通信的方式，集群中采用多种通信方式，防止一种通信方式失效导致集群中的节点无法通信。
+ * Fencing, 共享资源的方式：比如能看到共享资源就表示在集群中，能够获得共享资源的锁的就是Leader，看不到共享资源的，就不在集群中。）
+ * 通过Quorums机制来防止脑裂和假死，当
+ * leader挂掉之后，
+ * 可以重新选举出新的leader节点使整个集群达成一致；
+ * 当出现假死现象时，通过epoch大小来拒绝旧的leader发起的请求
+ * 分布式锁敬群 （nginex epoll 线程池） C10K C10m问题
  *
  */
 @InterfaceAudience.Public

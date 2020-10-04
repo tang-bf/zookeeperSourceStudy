@@ -969,7 +969,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         }
         return false; 
     }
-
+//incomingBuffer  客户端发送过来的数据
     public void processPacket(ServerCnxn cnxn, ByteBuffer incomingBuffer) throws IOException {
         // We have the request, now process and setup for next
         InputStream bais = new ByteBufferInputStream(incomingBuffer);
@@ -981,6 +981,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         // pointing
         // to the start of the txn
         incomingBuffer = incomingBuffer.slice();
+        //处理addauth 将auth信息添加到servercnxn中
          if (h.getType() == OpCode.auth) {
             LOG.info("got auth packet " + cnxn.getRemoteSocketAddress());
             AuthPacket authPacket = new AuthPacket();
@@ -990,6 +991,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
             Code authReturn = KeeperException.Code.AUTHFAILED;
             if(ap != null) {
                 try {
+                    // digest ip asl 三种
                     authReturn = ap.handleAuthentication(cnxn, authPacket.getAuth());
                 } catch(RuntimeException e) {
                     LOG.warn("Caught runtime exception from AuthenticationProvider: " + scheme + " due to " + e);

@@ -240,6 +240,42 @@ public class FastLeaderElection implements Election {
                 this.manager = manager;
             }
 
+            /**
+             * w外部投票 其他服务器发股哟来的
+             * 内部投票  自身
+             * 选举轮次  leader选举轮次   logicalclock
+             * pk  对比内部和外部是否需要更改自己的投票
+             *
+             * sendqueue 选票发送队列 保存待发送的选票信息
+             * recvqueue 选票接收队列  保存收到的外部选票信息
+             * WorkerReceiver 选票接收器 会不断的从quorumcnxmanager 中获取其他服务器发送过来的选举信息
+             * 并转换成选票信息 保存到recvqueue中，在接收过程中，如果发现 外部选票的选举轮次小于当前服务器，那么忽略
+             * 外部投票 ，同时立即发送自己的选票
+             *
+             * workersender 选票发送器  不断从sendqueue 获取待发送的选票传递给quorumcnxmanager中
+             *
+             *
+             *  return ((newEpoch > curEpoch) ||
+             *                 ((newEpoch == curEpoch) &&
+             *                 ((newZxid > curZxid) || ((newZxid == curZxid) && (newId > curId)))));
+             *
+             *        旧版本运行中添加服务器节点的话，只能在zoo.cfg中添加配置，重启每一个
+             *         3.5之后 新版本支持单机下群集standaloneenable=true
+             *        reconfigenable=true 动态扩容
+             *        从3.5.3开始，默认情况下禁用动态重新配置功能，并且必须通过reconfigEnabled配置选项明确打开 。
+             *        server.5 = 125.23.63.23:1234:1235:observer;123 配置方式也有所改变
+             *
+             *
+             *     QuorumCnxManager类为实际发生网络交互的地方，负责网络通讯中收集与发送投票信息，
+             *     有类图关系中可以看到此类中有个叫Listener的内部类，此类负责保证连接的一对一以及启动两个线程进行投票消息的收发：sendWorker和recvWorker；
+             *      FastLeaderElection类中也有两个内部类负责投票信息的收发：WorkerSender和WorkerReceiver。
+             *      消息发送条线：选举方法lookForLeader()中发送投票时是将投票信息放入FastLeaderElection类中的sendqueue队列中，
+             *      而WorkerSender（FastLeaderElection）：负责将sendqueue队列中的信息放入QuorumCnxManager类中的queueSendMap中；
+             *      而sendWorker（QuorumCnxManager）：负责将QuorumCnxManager类中的queueSendMap中的投票信息发送到网络上。
+             *       消息接收条线：recvWorker（QuorumCnxManager）：负责接收网络上的投票信息，并放入QuorumCnxManager类的recrQueue队列中；
+             *       WorkerReceiver（FastLeaderElection）：负责从QuorumCnxManager类中的recrQueue队列中获取数据，
+             *       并放入FastLeaderElection类中的recvqueue队列中。
+             */
             public void run() {
 
                 Message response;
@@ -263,7 +299,7 @@ public class FastLeaderElection implements Election {
                             ToSend notmsg = new ToSend(ToSend.mType.notification,
                                     current.getId(),
                                     current.getZxid(),
-                                    logicalclock.get(),
+                                   logicalclock.get(),
                                     self.getPeerState(),
                                     response.sid,
                                     current.getPeerEpoch());
@@ -828,6 +864,14 @@ public class FastLeaderElection implements Election {
             int notTimeout = finalizeWait;
 
             synchronized(this){
+                //分布式下的全局时钟  逻辑时钟
+                /**逻辑时钟  描述分布式系统中时序和因果关系的一种机制。
+                 * 由于网络延迟、时钟漂移等现实问题，我们无法建立一个全局物理时钟来描述时序，
+                 * 因此区别于物理时钟的「逻辑时钟」机制应运而生。
+                 * 分布式系统中的因果一致性， 换句话说，就是如何准确刻画分布式中的事件顺序，
+                 * 显然仅仅简单地依靠进程接收到的(看到的)事件发生顺序是不准确的。
+                 *参考网上文章https://writings.sh/post/logical-clocks
+                 */
                 logicalclock.incrementAndGet(); // 逻辑时钟+1， 服务器在运行的过程中，进行领导者选举的次数
                 //更新提议，包含(myid,lastZxid,epoch)，更新为自己
                 updateProposal(getInitId(), getInitLastLoggedZxid(), getPeerEpoch());

@@ -39,6 +39,7 @@ import org.apache.zookeeper.common.Time;
  * interval. It always rounds up the tick interval to provide a sort of grace
  * period. Sessions are thus expired in batches made up of sessions that expire
  * in a given interval.
+ * 个单独的线程专门处理过期session
  */
 public class SessionTrackerImpl extends ZooKeeperCriticalThread implements SessionTracker {
     private static final Logger LOG = LoggerFactory.getLogger(SessionTrackerImpl.class);
@@ -139,6 +140,7 @@ public class SessionTrackerImpl extends ZooKeeperCriticalThread implements Sessi
     }
 
     @Override
+    //session 关闭的时候会清除临时节点
     synchronized public void run() {
         try {
             while (running) {

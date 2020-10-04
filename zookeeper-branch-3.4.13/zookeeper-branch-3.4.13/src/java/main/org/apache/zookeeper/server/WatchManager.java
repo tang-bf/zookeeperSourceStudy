@@ -38,10 +38,11 @@ import org.apache.zookeeper.Watcher.Event.KeeperState;
 public class WatchManager {
     private static final Logger LOG = LoggerFactory.getLogger(WatchManager.class);
 
-    private final HashMap<String, HashSet<Watcher>> watchTable =
+    private final HashMap<String, HashSet<Watcher>> watchTable = // watcher表  从节点路径到watcher集合的映射
         new HashMap<String, HashSet<Watcher>>();
 
     private final HashMap<Watcher, HashSet<String>> watch2Paths =
+            // watcher到节点路径的映射 从watcher到所有节点路径集合的映射
         new HashMap<Watcher, HashSet<String>>();
 
     public synchronized int size(){

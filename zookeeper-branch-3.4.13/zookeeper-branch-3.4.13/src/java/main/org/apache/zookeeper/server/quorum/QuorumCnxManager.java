@@ -737,6 +737,20 @@ public class QuorumCnxManager {
 
         /**
          * Sleeps on accept().
+         * 负责leader选举中服务器之间通信网络
+         * 维护了一系列队列保存接收到的，待发送的消息及消息发送器，除接受队列外，其他队列按照sid分组形成队列集合
+         * 如一个集群中除了自身还有三台服务器，那么就为这三台服务器分别创建一个发送队列，互不干扰
+         * recv Queue消息接收队列，用于存放那些从其他服务器发送过来的投票信息
+         * queuesendmap 消息待发送队列，保存那些待发送的队列  按照sid分组
+         * senderWorkerMap 发送器集合 每个sendworker发送器都对应一台远程server服务器 负责消息的发送按照sid分组
+         *  lastMessageSent; // 发送给每台服务器最近的消息
+         *  建立连接：相互投票，凉凉建立连接 ，为避免重复myid大的去连接小的，否则断开连接，自己主动去连接，一旦连接建立
+         *  根据sid来创建对用的消息发送器sendworker和消息接收器 recvworker
+         *
+         *  recvworker 消息接收，从tcp连接中读取消息保存到recvqueue中
+         *  sendworker 每个服务器分配一个单独的，不断从对应消息发送队列中获取发送数据，同时放入到lastmessagesend中
+         *  为了解决接收方在接手前或者接收到后服务器挂掉，导致消息未被正确处理，同时保证接收方处理消息时，会对重复消息进行正确的处理
+         *
          */
         @Override
         public void run() {
@@ -744,7 +758,7 @@ public class QuorumCnxManager {
             InetSocketAddress addr;
             while((!shutdown) && (numRetries < 3)){
                 try {
-                    ss = new ServerSocket();
+                    ss = new ServerSocket(); //bio
                     ss.setReuseAddress(true);
                     if (listenOnAllIPs) {
                         int port = view.get(QuorumCnxManager.this.mySid)

@@ -91,6 +91,8 @@ public class DigestAuthenticationProvider implements AuthenticationProvider {
     static public String generateDigest(String idPassword)
             throws NoSuchAlgorithmException {
         String parts[] = idPassword.split(":", 2);
+        //ID 如果设置的是user:password 会对password sha1 加密后再base64
+        //如果注册的是ip 存的是客户端的ip地址  IPAuthenticationProvider
         byte digest[] = MessageDigest.getInstance("SHA1").digest(
                 idPassword.getBytes());
         return parts[0] + ":" + base64Encode(digest);

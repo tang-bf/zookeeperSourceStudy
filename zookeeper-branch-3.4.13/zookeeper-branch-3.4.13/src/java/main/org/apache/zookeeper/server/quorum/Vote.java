@@ -29,11 +29,11 @@ public class Vote {
     public Vote(long id, 
                     long zxid) {
         this.version = 0x0;
-        this.id = id;
-        this.zxid = zxid;
-        this.electionEpoch = -1;
-        this.peerEpoch = -1;
-        this.state = ServerState.LOOKING;
+        this.id = id;//被推举的leader的id
+        this.zxid = zxid;//被推举的leader事物id
+        this.electionEpoch = -1;//逻辑时钟 判断多个投票是否在同一轮选举周期中，该值在服务端是一个自增的序列，每次进入一轮选举会加1
+        this.peerEpoch = -1;//被推举的leader的epoch
+        this.state = ServerState.LOOKING;//服务器状态
     }
     
     public Vote(long id, 

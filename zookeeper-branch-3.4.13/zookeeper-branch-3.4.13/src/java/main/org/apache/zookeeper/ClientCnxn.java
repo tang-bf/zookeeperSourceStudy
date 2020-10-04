@@ -652,6 +652,7 @@ public class ClientCnxn {
 
     private void finishPacket(Packet p) {
         if (p.watchRegistration != null) {
+            //注册watch
             p.watchRegistration.register(p.replyHeader.getErr());
         }
 
@@ -860,7 +861,7 @@ public class ClientCnxn {
                             + Long.toHexString(sessionId) + ", packet:: " + packet);
                 }
             } finally {
-                // 处理packet
+                // 处理packet 注册watch
                 finishPacket(packet);
             }
         }
@@ -1480,6 +1481,8 @@ public class ClientCnxn {
         // generated later at send-time, by an implementation of ClientCnxnSocket::doIO(),
         // where the packet is actually sent.
         synchronized (outgoingQueue) {
+            //将注册器封装到packet中  只用保存在客户端即可，服务端不需要知道客户端注册的监听器
+            //sendhread负责发送和读取响应数据
             packet = new Packet(h, r, request, response, watchRegistration);
             packet.cb = cb;
             packet.ctx = ctx;

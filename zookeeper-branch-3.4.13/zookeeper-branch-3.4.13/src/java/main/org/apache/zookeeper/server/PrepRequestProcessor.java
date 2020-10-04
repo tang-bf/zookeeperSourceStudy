@@ -322,7 +322,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
     @SuppressWarnings("unchecked")
     protected void pRequest2Txn(int type, long zxid, Request request, Record record, boolean deserialize)
         throws KeeperException, IOException, RequestProcessorException
-    {
+    {   //日志头
         request.hdr = new TxnHeader(request.sessionId, request.cxid, zxid,
                                     Time.currentWallTime(), type);
 
@@ -544,6 +544,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
     protected void pRequest(Request request) throws RequestProcessorException {
         // LOG.info("Prep>>> cxid = " + request.cxid + " type = " +
         // request.type + " id = 0x" + Long.toHexString(request.sessionId));
+        //清空日志头  日志内容  下面会重新赋值
         request.hdr = null;
         request.txn = null;
         
@@ -551,7 +552,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
             switch (request.type) {
                 case OpCode.create:
                 CreateRequest createRequest = new CreateRequest();
-                // zxid的生成
+                // zxid的生成  zks.getNextZxid() 自增的
                 pRequest2Txn(request.type, zks.getNextZxid(), request, createRequest, true);
                 break;
             case OpCode.delete:

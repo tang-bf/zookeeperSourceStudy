@@ -650,7 +650,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
         // 启动服务器
         //  1. 先进行领导者选举，先确定服务器角色
         //  2. 角色确定好后，服务器各自按各自的角色进行初始化
-        super.start();  // 开启线程
+        super.start();  // 开启线程调用本类的run方法开始领导者选举并处理可护短请求 处理真正领导者选举
 
 
     }
@@ -719,7 +719,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
     }
     synchronized public void startLeaderElection() {
     	try {
-    	    // 生成投票，投给自己
+    	    // 生成投票，投给自己  zxid myid epoch
     		currentVote = new Vote(myid, getLastLoggedZxid(), getCurrentEpoch());
     	} catch(IOException e) {
     		RuntimeException re = new RuntimeException(e.getMessage());
@@ -840,11 +840,13 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
             break;
         case 3:
             // 初始化负责各台服务器之间的底层Leader选举过程中的网络通信。
+            //负责leader选举中服务器之间通信网络 队列+线程  falstleaderelection 队列加线程
             qcm = createCnxnManager();
             QuorumCnxManager.Listener listener = qcm.listener;
             if(listener != null){
-                listener.start();
+                listener.start();//负责监听其他服务器发送过来的socket连接  如果连接成功则初始化
                 // 默认用的是FastLeaderElection
+                // 并且会初始化sendqueue、recvqueue 并且启动WorkerSender和WorkerReceiver线程
                 le = new FastLeaderElection(this, qcm);
             } else {
                 LOG.error("Null listener when initializing cnx manager");
@@ -924,7 +926,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
 
         try {
             /*
-             * Main loop
+             * Main loop  主循环
              */
             while (running) {
                 // 本机服务器状态:LOOKING、OBSERVING、FOLLOWING、LEADING
@@ -982,6 +984,8 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                         try {
                             // 兼容性代码
                             setBCVote(null);
+                            //进行领导者选举 lookforleader 方法直接选举出领导者才返回，并且返回选举出的leader是谁
+                            //fastleaderelection的lookforleader方法逻辑
                             setCurrentVote(makeLEStrategy().lookForLeader());
                         } catch (Exception e) {
                             LOG.warn("Unexpected exception", e);
