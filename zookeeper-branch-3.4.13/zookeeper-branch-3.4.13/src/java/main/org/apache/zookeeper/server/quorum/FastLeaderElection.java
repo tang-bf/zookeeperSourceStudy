@@ -937,6 +937,7 @@ public class FastLeaderElection implements Election {
                             recvset.clear(); // 清空自己的选票
 
                             // 比较选票对应的服务器和本机，如果选票对应的服务器更新就更新投票为选票所对应的服务器
+                            //进行pk
                             if(totalOrderPredicate(n.leader, n.zxid, n.peerEpoch,
                                     getInitId(), getInitLastLoggedZxid(), getPeerEpoch())) {
                                 updateProposal(n.leader, n.zxid, n.peerEpoch);
