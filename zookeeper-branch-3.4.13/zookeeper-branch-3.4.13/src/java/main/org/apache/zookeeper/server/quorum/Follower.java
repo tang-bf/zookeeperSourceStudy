@@ -30,6 +30,29 @@ import org.apache.zookeeper.txn.TxnHeader;
 
 /**
  * This class has the control logic for the Follower.
+ *
+ * 分布式一致性算法-Paxos、Raft、ZAB、Gossip
+ * 为什么需要一致性
+ * 数据不能存在单个节点（主机）上，否则可能出现单点故障。
+ * 多个节点（主机）需要保证具有相同的数据。
+ * 一致性算法就是为了解决上面两个问题。
+ * 一致性就是数据保持一致，在分布式系统中，可以理解为多个节点中数据的值是一致的。
+ * 强一致性
+ * 说明：保证系统改变提交以后立即改变集群的状态。
+ * 模型：
+ * Paxos
+ * Raft（muti-paxos）
+ * ZAB（muti-paxos） zk保证的是最终一致性
+ * 弱一致性
+ * 说明：也叫最终一致性，系统不保证改变提交以后立即改变集群的状态，但是随着时间的推移最终状态是一致的。
+ * 模型：
+ * DNS系统
+ * Gossip协议
+ *
+ * Google的Chubby分布式锁服务，采用了Paxos算法
+ * etcd分布式键值数据库，采用了Raft算法(kubernetes等项目都用到etcd组件作为一个高可用分布式键值存储。)
+ * ZooKeeper分布式应用协调服务，Chubby的开源实现，采用ZAB算法
+ * 参考博客https://zhuanlan.zhihu.com/p/130332285
  */
 public class Follower extends Learner{
 
@@ -82,6 +105,12 @@ public class Follower extends Learner{
                             + " is less than our accepted epoch " + ZxidUtils.zxidToString(self.getAcceptedEpoch()));
                     throw new IOException("Error: Epoch of leader is lower");
                 }
+                /**
+                 * peerLastZxid：该Learner服务器最后处理的ZXID。
+                 * minCommittedLog：Leader服务器提议缓存队列committedLog中的最小ZXID。
+                 * maxCommittedLog：Leader服务器提议缓存队列committedLog中的最大ZXID。
+                 */
+                //差异化同步（DIFF同步）、先回滚再差异化同步（TRUNC+DIFF同步）、仅回滚同步（TRUNC同步）和全量同步（SNAP同步）
                 syncWithLeader(newEpochZxid);    // 完成了数据同步，同步完成后会进行服务器初始化，从而可以处理客户端请求
 
                 // 同时从Leader获取请求数据

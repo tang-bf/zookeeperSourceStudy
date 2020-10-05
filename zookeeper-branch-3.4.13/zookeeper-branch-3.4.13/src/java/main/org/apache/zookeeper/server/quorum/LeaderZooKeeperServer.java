@@ -65,11 +65,22 @@ public class LeaderZooKeeperServer extends QuorumZooKeeperServer {
                 Long.toString(getServerId()), false,
                 getZooKeeperServerListener());
         commitProcessor.start();
+        /**commitProcessor
+         *线程+队列模型  能让写请求阻塞，只有当收到过半 的ack后才会解阻塞从而调用nextprocessor进行处理
+         */
         ProposalRequestProcessor proposalProcessor = new ProposalRequestProcessor(this,
-                commitProcessor);
-        proposalProcessor.initialize();
+                commitProcessor);//同时还有AckRequestProcessor  syncprocessor
+        /**ProposalRequestProcessor 交给next就是commit
+         *如果是写请求，封装request 成一个提议，发送给follower
+         * 再把request传递给sync处理，会把他持久化，持久化成功就会返回ackrequest
+         * ack就是返回leader一个ack
+         * 白色的不是线程  firstProcessor 这种同时实现了线程
+         */
+        proposalProcessor.initialize();//启动syncprocessor
         firstProcessor = new PrepRequestProcessor(this, proposalProcessor);
         ((PrepRequestProcessor)firstProcessor).start();
+        //PrepRequestProcessor 同单机模式下 request.hdr = null; request.txn = null;
+        //3.5后第一个增加为LeaderRequestProcessor 处理localsession 将请求交给下一个处理
     }
 
     @Override

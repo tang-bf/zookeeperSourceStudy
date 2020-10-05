@@ -1034,6 +1034,8 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                         // Leader什么时候会抛异常呢？
                         LOG.warn("Unexpected exception",e);
                     } finally {
+                        //leader 会想learner发送ping  超过一半learner没有回应  自己shutdown
+                        //setPeerState(ServerState.LOOKING);  重新选举
                         // 当Leader在服务过程中出现异常，或者由于联系不上超过一般的Learner时会自动关闭后进入finally
                         if (leader != null) {
                             leader.shutdown("Forcing shutdown");
