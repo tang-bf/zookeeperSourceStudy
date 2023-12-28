@@ -78,6 +78,8 @@ import org.apache.zookeeper.server.quorum.QuorumPeerConfig.ConfigException;
  * 当出现假死现象时，通过epoch大小来拒绝旧的leader发起的请求
  * 分布式锁敬群 （nginex epoll 线程池） C10K C10m问题
  *
+ *
+ *
  */
 @InterfaceAudience.Public
 public class QuorumPeerMain {
